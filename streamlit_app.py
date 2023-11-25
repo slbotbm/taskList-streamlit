@@ -63,3 +63,6 @@ if coffee:
 
 if cola:
     st.write("Here you go 🥤")
+
+st.header("st.secrets")
+st.write(st.secrets["message"])
