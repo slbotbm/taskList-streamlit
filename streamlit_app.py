@@ -37,10 +37,12 @@ option = st.selectbox("What is your favourite color?", ("Blue", "Red", "Green"))
 
 st.write("Your favourite color is", option)
 
-st.header("st.multselect")
+import streamlit as st
 
-options = st.mutliselect(
-    "What are your favourite color",
+st.header("st.multiselect")
+
+options = st.multiselect(
+    "What are your favorite colors",
     ["Green", "Yellow", "Red", "Blue"],
     ["Yellow", "Red"],
 )
