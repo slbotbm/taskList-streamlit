@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-
-from streamlit_pandas_profiling import st_profile_report
 from datetime import time, datetime
 
 st.header("st.slider")
@@ -39,8 +37,6 @@ option = st.selectbox("What is your favourite color?", ("Blue", "Red", "Green"))
 
 st.write("Your favourite color is", option)
 
-import streamlit as st
-
 st.header("st.multiselect")
 
 options = st.multiselect(
@@ -74,4 +70,4 @@ df = pd.read_csv(
 )
 
 pr = df.profile_report()
-st_profile_report(pr)
+st.write(pr)
