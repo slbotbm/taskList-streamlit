@@ -36,3 +36,13 @@ st.header("st.selectbox")
 option = st.selectbox("What is your favourite color?", ("Blue", "Red", "Green"))
 
 st.write("Your favourite color is", option)
+
+st.header("st.multselect")
+
+options = st.mutliselect(
+    "What are your favourite color",
+    ["Green", "Yellow", "Red", "Blue"],
+    ["Yellow", "Red"],
+)
+
+st.write("You selected:", options)
