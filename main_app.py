@@ -1,7 +1,6 @@
 import streamlit as st
 from datetime import datetime
 import pandas as pd
-import numpy as np
 
 
 @st.cache_data(show_spinner=False)
@@ -16,7 +15,52 @@ def load_data(csv_file):
     return data
 
 
+def edit_data():
+    st.session_state["data_df"].at[
+        st.session_state["task_index"], "name"
+    ] = st.session_state["task_name"]
+    st.session_state["data_df"].at[
+        st.session_state["task_index"], "details"
+    ] = st.session_state["task_details"]
+    st.session_state["data_df"].at[
+        st.session_state["task_index"], "time_limit"
+    ] = st.session_state["task_time_limit"]
+    st.session_state["data_df"].at[
+        st.session_state["task_index"], "importance"
+    ] = st.session_state["task_importance"]
+    st.session_state["data_df"].at[
+        st.session_state["task_index"], "cost"
+    ] = st.session_state["task_cost"]
+    st.session_state["data_df"].at[
+        st.session_state["task_index"], "category"
+    ] = st.session_state["task_category"]
+    if st.session_state["task_complete"] == "はい":
+        st.session_state["data_df"].at[st.session_state["task_index"], "complete"] = 1
+    else:
+        st.session_state["data_df"].at[st.session_state["task_index"], "complete"] = 0
+    st.session_state["data_df"].loc[
+        st.session_state["task_index"], "updated_at"
+    ] = datetime.now()
+
+    st.session_state["data_df"].to_csv("tasks_data.csv", index=False)
+
+
 def show_df_in_page(df):
+    if (
+        "task_index" in st.session_state.keys()
+        and "task_name" in st.session_state.keys()
+    ):
+        edit_data()
+        del st.session_state["task_index"]
+        del st.session_state["task_name"]
+        del st.session_state["task_details"]
+        del st.session_state["task_time_limit"]
+        del st.session_state["task_cost"]
+        del st.session_state["task_category"]
+        del st.session_state["task_complete"]
+        del st.session_state["task_importance"]
+        st.rerun()
+
     for row in df.iterrows():
         with st.container():
             st.markdown(f"#### {row[1]['name']}")
@@ -40,12 +84,10 @@ def show_df_in_page(df):
                 edit_button = st.button("編集", key=row[0], use_container_width=True)
         if edit_button:
             with st.form("form"):
-                task_name = st.text_input(
-                    "タスコの名前", value=row[1]["name"], max_chars=50, key="task_name"
+                st.text_input(
+                    "タスクの名前", value=row[1]["name"], max_chars=50, key="task_name"
                 )
-                task_details = st.text_area(
-                    "タスクの詳細", value=row[1]["details"], key="task_details"
-                )
+                st.text_area("タスクの詳細", value=row[1]["details"], key="task_details")
                 form_columns_1 = st.columns(3)
                 form_columns_2 = st.columns(2)
                 with form_columns_1[0]:
@@ -71,57 +113,13 @@ def show_df_in_page(df):
                         key="task_category",
                     )
                 with form_columns_2[1]:
-                    task_complete = st.selectbox(
-                        "完了？", options=["", "はい", "いいえ"], key="task_complete"
-                    )
+                    st.selectbox("完了？", options=["", "はい", "いいえ"], key="task_complete")
                 st.session_state["task_index"] = row[0]
-                submit_activate = False
-                if task_complete != "":
-                    if task_name.strip() != "":
-                        if task_details.strip() != "":
-                            submit_activate = True
-
                 form_submit = st.form_submit_button(
                     type="primary",
                     use_container_width=True,
-                    disabled=not submit_activate,
+                    disabled=False,
                 )
-                print(form_submit)
-                if st.session_state["FormSubmitter:form-Submit"]:
-                    edit_data()
-
-
-def edit_data():
-    print("Entered edit_data()")
-    print(st.session_state["data_df"].at[st.session_state["task_index"], "name"])
-    print(st.session_state["task_name"])
-    st.session_state["data_df"].at[
-        st.session_state["task_index"], "name"
-    ] = st.session_state["task_name"]
-    print(st.session_state["data_df"].at[st.session_state["task_index"], "name"])
-    st.session_state["data_df"].at[
-        st.session_state["task_index"], "details"
-    ] = st.session_state["task_details"]
-    st.session_state["data_df"].at[
-        st.session_state["task_index"], "time_limit"
-    ] = st.session_state["task_time_limit"]
-    st.session_state["data_df"].at[
-        st.session_state["task_index"], "importance"
-    ] = st.session_state["task_importance"]
-    st.session_state["data_df"].at[
-        st.session_state["task_index"], "cost"
-    ] = st.session_state["task_cost"]
-    st.session_state["data_df"].at[
-        st.session_state["task_index"], "category"
-    ] = st.session_state["task_category"]
-    if st.session_state["task_complete"] == "はい":
-        st.session_state["data_df"].at[st.session_state["task_index"], "complete"] = 1
-    else:
-        st.session_state["data_df"].at[st.session_state["task_index"], "complete"] = 0
-    st.session_state["data_df"].loc[
-        st.session_state["task_index"], "updated_at"
-    ] = datetime.now()
-    st.session_state["data_df"].to_csv("tasks_data.py", index=False)
 
 
 st.set_page_config(
@@ -136,8 +134,6 @@ if "data_df" not in st.session_state:
     st.session_state["data_df"] = load_data("tasks_data.csv")
 
 show_df = st.session_state["data_df"].copy()
-st.session_state["data_df"]
-st.session_state
 st.title("タスク一覧")
 sort = st.selectbox("データの順分を変える？", options=["いいえ", "はい"])
 if sort == "はい":
