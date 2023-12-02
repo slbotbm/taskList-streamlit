@@ -6,12 +6,12 @@ import pandas as pd
 @st.cache_data(show_spinner=False)
 def load_data(csv_file):
     data = pd.read_csv(csv_file)
-    data["time_limit"] = pd.to_datetime(data["time_limit"])
+    data["time_limit"] = pd.to_datetime(data["time_limit"], format="mixed")
     data["importance"] = pd.to_numeric(data["importance"])
     data["cost"] = pd.to_numeric(data["cost"])
     data["complete"] = pd.to_numeric(data["complete"])
-    data["created_at"] = pd.to_datetime(data["created_at"])
-    data["updated_at"] = pd.to_datetime(data["updated_at"])
+    data["created_at"] = pd.to_datetime(data["created_at"], format="mixed")
+    data["updated_at"] = pd.to_datetime(data["updated_at"], format="mixed")
     return data
 
 
@@ -46,10 +46,7 @@ def edit_data():
 
 
 def show_df_in_page(df):
-    if (
-        "task_index" in st.session_state.keys()
-        and "task_name" in st.session_state.keys()
-    ):
+    if "task_name" in st.session_state.keys():
         edit_data()
         del st.session_state["task_index"]
         del st.session_state["task_name"]
