@@ -42,25 +42,39 @@ def edit_data():
         st.session_state["task_index"], "updated_at"
     ] = datetime.now()
 
+    del st.session_state["task_index"]
+    del st.session_state["task_name"]
+    del st.session_state["task_details"]
+    del st.session_state["task_time_limit"]
+    del st.session_state["task_cost"]
+    del st.session_state["task_category"]
+    del st.session_state["task_complete"]
+    del st.session_state["task_importance"]
+
     st.session_state["data_df"].to_csv("tasks_data.csv", index=False)
 
 
-def show_df_in_page(df):
-    if "task_name" in st.session_state.keys():
+def create_data():
+    data_to_insert = {"name": ""}
+
+
+def create_front_screen(df):
+    if (
+        "task_name" in st.session_state.keys()
+        and "task_index" in st.session_state.keys()
+    ):
         edit_data()
-        del st.session_state["task_index"]
-        del st.session_state["task_name"]
-        del st.session_state["task_details"]
-        del st.session_state["task_time_limit"]
-        del st.session_state["task_cost"]
-        del st.session_state["task_category"]
-        del st.session_state["task_complete"]
-        del st.session_state["task_importance"]
+        st.rerun()
+    if "new_task_name" in st.session_state.keys():
+        create_data()
+        st.rerun()
+    if "new_name" in st.session_state.keys():
+        create_data()
         st.rerun()
 
     for row in df.iterrows():
         with st.container():
-            st.markdown(f"#### {row[1]['name']}")
+            st.markdown(f"##### {row[1]['name']}")
             st.write(row[1]["details"])
             columns_1 = st.columns(3)
             columns_2 = st.columns(3)
@@ -78,9 +92,22 @@ def show_df_in_page(df):
                 else:
                     st.write(":red[完了されていない]")
             with columns_2[2]:
-                edit_button = st.button("編集", key=row[0], use_container_width=True)
+                sub_column = st.columns(2)
+                with sub_column[0]:
+                    edit_button = st.button(
+                        "編集", key=str(row[0]) + "_edit", use_container_width=True
+                    )
+                with sub_column[1]:
+                    delete_button = st.button(
+                        "削除", key=str(row[0]) + "_delete", use_container_width=True
+                    )
+        if delete_button:
+            st.session_state["data_df"] = st.session_state["data_df"].drop(row[0])
+            st.session_state["data_df"].to_csv("tasks_data.csv")
+            st.rerun()
+
         if edit_button:
-            with st.form("form"):
+            with st.form("edit_form"):
                 st.text_input(
                     "タスクの名前", value=row[1]["name"], max_chars=50, key="task_name"
                 )
@@ -129,9 +156,44 @@ if "start_pos" not in st.session_state:
     st.session_state["start_pos"] = 0
 if "data_df" not in st.session_state:
     st.session_state["data_df"] = load_data("tasks_data.csv")
-
 show_df = st.session_state["data_df"].copy()
-st.title("タスク一覧")
+
+st.session_state
+header = st.columns((5, 3))
+with header[0]:
+    st.markdown("### タスク一覧")
+with header[1]:
+    create_task = st.button("タスクを作成する", use_container_width=True, type="primary")
+if create_task:
+    with st.form("create_form"):
+        st.text_input("タスクの名前", max_chars=50, key="new_task_name")
+        st.text_area("タスクの詳細", key="new_task_details")
+        form_columns_1 = st.columns(3)
+        form_columns_2 = st.columns(2)
+        with form_columns_1[0]:
+            st.date_input("タスクの期限", key="new_task_time_limit")
+        with form_columns_1[1]:
+            st.number_input(
+                "タスクの優先順位",
+                min_value=1,
+                max_value=len(st.session_state["data_df"]) + 2,
+                key="new_task_importance",
+            )
+        with form_columns_1[2]:
+            st.number_input("タスクのコスト", min_value=0, key="task_cost")
+        with form_columns_2[0]:
+            st.selectbox(
+                "タスクのカテゴリ",
+                options=st.session_state["data_df"]["category"].unique(),
+                key="new_task_category",
+            )
+        with form_columns_2[1]:
+            st.selectbox("完了？", options=["", "はい", "いいえ"], key="task_complete")
+        form_submit = st.form_submit_button(
+            type="primary",
+            use_container_width=True,
+            disabled=False,
+        )
 sort = st.selectbox("データの順分を変える？", options=["いいえ", "はい"])
 if sort == "はい":
     sort_menu_dict = {
@@ -175,7 +237,7 @@ if sort == "はい":
             show_df = show_df[show_df["complete"] == 0]
 
 
-show_df_in_page(
+create_front_screen(
     show_df.iloc[
         st.session_state["start_pos"] : st.session_state["start_pos"]
         + st.session_state["batch_size"]
