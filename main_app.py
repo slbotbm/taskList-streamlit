@@ -3,6 +3,7 @@ from datetime import datetime
 import pandas as pd
 
 
+################################################ 関数の定義：始まり ################################################
 @st.cache_data(show_spinner=False)
 def load_data(csv_file):
     data = pd.read_csv(csv_file)
@@ -73,6 +74,15 @@ def create_data():
         st.session_state["data_df"].loc[
             len(st.session_state["data_df"])
         ] = data_to_insert
+
+        del st.session_state["new_task_name"]
+        del st.session_state["new_task_details"]
+        del st.session_state["new_task_time_limit"]
+        del st.session_state["new_task_cost"]
+        del st.session_state["new_task_category"]
+        del st.session_state["new_task_complete"]
+        del st.session_state["new_task_importance"]
+
         st.session_state["data_df"].to_csv("tasks_data.csv", index=False)
         if st.session_state["task_created"] == True:
             st.rerun()
@@ -177,21 +187,26 @@ def show_tasks(df):
         st.markdown("### 条件に一致しているタスクが見つからなかった")
 
 
+################################################ 関数の定義：終わり ################################################
+
 st.set_page_config(
     page_title="タスクアプリ", layout="centered", initial_sidebar_state="collapsed"
 )
 
+################################################ セッションステートの変数の定義：始まり ################################################
 if "batch_size" not in st.session_state:
     st.session_state["batch_size"] = 10
 if "start_pos" not in st.session_state:
     st.session_state["start_pos"] = 0
-if "create_task" not in st.session_state:
+if "task_created" not in st.session_state:
     st.session_state["task_created"] = False
 if "data_df" not in st.session_state:
     st.session_state["data_df"] = load_data("tasks_data.csv")
 show_df = st.session_state["data_df"].copy()
 
+################################################ セッションステートの変数の定義：終わり ################################################
 
+################################################ ヘッダの定義：始まり ################################################
 header = st.columns((5, 3))
 with header[0]:
     st.markdown("### タスク一覧")
@@ -227,9 +242,10 @@ if create_task:
             use_container_width=True,
             disabled=False,
         )
+################################################ ヘッダの定義：終わり ################################################
 
-
-sort = st.selectbox("データの順分を変える？", options=["いいえ", "はい"])
+################################################ ソートメニューの定義：始まり ################################################
+sort = st.selectbox("データの順番を変える？", options=["いいえ", "はい"])
 if sort == "はい":
     sort_menu_dict = {
         "期限": "time_limit",
@@ -254,14 +270,14 @@ if sort == "はい":
             placeholder="カテゴリを選択する",
         )
     with sub_menu[1]:
-        sort_direction = st.selectbox("順序", options=["昇順⬇️", "降順⬆️"])
+        sort_direction = st.selectbox("順序", options=["上昇⬇️", "降順⬆️"])
     with sub_menu[2]:
         sort_by_completed_task = st.selectbox("完了?", options=["", "はい", "いいえ"])
 
     if len(sort_menu) > 0:
         sort_menu = [sort_menu_dict[i] for i in sort_menu]
         show_df = st.session_state["data_df"].sort_values(
-            by=sort_menu, ascending=sort_direction == "昇順⬇️"
+            by=sort_menu, ascending=sort_direction == "上昇⬇️"
         )
     if len(sort_category) > 0:
         show_df = show_df[show_df["category"].isin(sort_category)]
@@ -270,14 +286,18 @@ if sort == "はい":
             show_df = show_df[show_df["complete"] == 1]
         else:
             show_df = show_df[show_df["complete"] == 0]
+################################################ ソートメニューの定義：終わり ################################################
 
+################################################ show_tasksの定義：始まり ################################################
 show_tasks(
     show_df.iloc[
         st.session_state["start_pos"] : st.session_state["start_pos"]
         + st.session_state["batch_size"]
     ]
 )
+################################################ show_tasksの定義：終わり ################################################
 
+################################################ フッターの定義：始まり ################################################
 footer = st.columns((4, 1, 1))
 
 with footer[2]:
@@ -289,7 +309,7 @@ with footer[1]:
     temp_var = len(show_df) / st.session_state["batch_size"]
     total_pages = (
         (int(temp_var) + 1 if temp_var - int(temp_var) > 0 else int(temp_var))
-        if int(len(show_df) / st.session_state["batch_size"]) > 0
+        if int(temp_var) > 0
         else 1
     )
     current_page = st.number_input("ページ", min_value=1, max_value=total_pages, step=1)
@@ -302,3 +322,4 @@ with footer[1]:
         st.rerun()
 with footer[0]:
     st.markdown(f"**{total_pages}**ページの中の**{current_page}**番目ページ")
+################################################ フッターの定義：終わり ################################################
