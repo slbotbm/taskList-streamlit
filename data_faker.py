@@ -41,8 +41,5 @@ data = {
     "updated_at": [dates[i][1].strftime("%Y-%m-%d") for i in range(number_of_items)],
 }
 
-# Create DataFrame
 df = pd.DataFrame(data)
-
-# Save to CSV file
 df.to_csv("tasks_data.csv", index=False)
