@@ -74,6 +74,9 @@ def create_data():
             len(st.session_state["data_df"])
         ] = data_to_insert
         st.session_state["data_df"].to_csv("tasks_data.csv", index=False)
+        if st.session_state["create_task"] == True:
+            st.rerun()
+            st.session_state["create_task"] = False
 
 
 def show_tasks(df):
@@ -84,6 +87,7 @@ def show_tasks(df):
         edit_data()
         st.rerun()
     if "new_task_name" in st.session_state:
+        st.session_state["create_task"] = True
         create_data()
 
     if len(df) > 0:
@@ -177,6 +181,8 @@ if "batch_size" not in st.session_state:
     st.session_state["batch_size"] = 10
 if "start_pos" not in st.session_state:
     st.session_state["start_pos"] = 0
+if "create_task" not in st.session_state:
+    st.session_state["create_task"] = False
 if "data_df" not in st.session_state:
     st.session_state["data_df"] = load_data("tasks_data.csv")
 show_df = st.session_state["data_df"].copy()
