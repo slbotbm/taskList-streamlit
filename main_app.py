@@ -70,7 +70,6 @@ def create_data():
             "updated_at": pd.Timestamp(datetime.now()),
             "created_at": pd.Timestamp(datetime.now()),
         }
-        print(data_to_insert)
         st.session_state["data_df"].loc[
             len(st.session_state["data_df"])
         ] = data_to_insert
