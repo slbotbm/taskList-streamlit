@@ -74,9 +74,9 @@ def create_data():
             len(st.session_state["data_df"])
         ] = data_to_insert
         st.session_state["data_df"].to_csv("tasks_data.csv", index=False)
-        if st.session_state["create_task"] == True:
+        if st.session_state["task_created"] == True:
             st.rerun()
-            st.session_state["create_task"] = False
+            st.session_state["task_created"] = False
 
 
 def show_tasks(df):
@@ -87,11 +87,10 @@ def show_tasks(df):
         edit_data()
         st.rerun()
     if "new_task_name" in st.session_state:
-        st.session_state["create_task"] = True
+        st.session_state["task_created"] = True
         create_data()
 
     if len(df) > 0:
-        st.write(f"タスクの数：{len(st.session_state['data_df'])}")
         for row in df.iterrows():
             with st.container(border=True):
                 st.markdown(f"##### {row[1]['name']}")
@@ -156,13 +155,18 @@ def show_tasks(df):
                     with form_columns_2[0]:
                         st.selectbox(
                             "タスクのカテゴリ",
-                            options=st.session_state["data_df"]["category"].unique(),
+                            options=["仕事", "運動", "家族", "友達"],
                             key="task_category",
                         )
                     with form_columns_2[1]:
-                        st.selectbox(
-                            "完了？", options=["", "はい", "いいえ"], key="task_complete"
-                        )
+                        if row[1]["complete"]:
+                            st.selectbox(
+                                "完了？", options=["はい", "いいえ"], key="task_complete"
+                            )
+                        else:
+                            st.selectbox(
+                                "完了？", options=["いいえ", "はい"], key="task_complete"
+                            )
                     st.session_state["task_index"] = row[0]
                     form_submit = st.form_submit_button(
                         type="primary",
@@ -182,7 +186,7 @@ if "batch_size" not in st.session_state:
 if "start_pos" not in st.session_state:
     st.session_state["start_pos"] = 0
 if "create_task" not in st.session_state:
-    st.session_state["create_task"] = False
+    st.session_state["task_created"] = False
 if "data_df" not in st.session_state:
     st.session_state["data_df"] = load_data("tasks_data.csv")
 show_df = st.session_state["data_df"].copy()
@@ -213,7 +217,7 @@ if create_task:
         with form_columns_2[0]:
             st.selectbox(
                 "タスクのカテゴリ",
-                options=st.session_state["data_df"]["category"].unique(),
+                options=["仕事", "運動", "家族", "友達"],
                 key="new_task_category",
             )
         with form_columns_2[1]:
