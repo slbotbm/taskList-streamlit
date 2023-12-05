@@ -165,7 +165,12 @@ def show_tasks(df):
                     with form_columns_2[0]:
                         st.selectbox(
                             "タスクのカテゴリ",
-                            options=["仕事", "運動", "家族", "友達"],
+                            options=[row[1]["category"]]
+                            + [
+                                i
+                                for i in ["仕事", "運動", "家族", "友達"]
+                                if i != row[1]["category"]
+                            ],
                             key="task_category",
                         )
                     with form_columns_2[1]:
